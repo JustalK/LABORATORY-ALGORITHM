@@ -1,28 +1,47 @@
+const DEFAULT_TILE = " ";
+const DEFAULT_PLAYER = "S";
+const DEFAULT_GOAL = "E";
+const DEFAULT_WALL = "#";
+
+class Goal {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+}
+
+class Player {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+}
+
 class Tile {
   constructor(x, y, isStart, isGoal, isWall) {
     this.x = x;
     this.y = y;
 
     if (isWall) {
-      this.symbol = "#";
+      this.symbol = DEFAULT_WALL;
     } else if (isStart) {
-      this.symbol = "S";
+      this.symbol = DEFAULT_PLAYER;
     } else if (isGoal) {
-      this.symbol = "E";
+      this.symbol = DEFAULT_GOAL;
     } else {
-      this.symbol = " ";
+      this.symbol = DEFAULT_TILE;
     }
   }
 }
 
 class Graph {
-  constructor(width, height, jx, jy, gx, gy, walls) {
+  constructor({ width, height, player, goal, wallPercent }) {
     this.map = [];
     for (let i = 0; i < height; i++) {
       for (let j = 0; j < width; j++) {
-        const isStart = j == jx && i == jy;
-        const isGoal = j == gx && i == gy;
-        const isWall = !isStart && !isGoal && Math.random() < walls;
+        const isStart = j == player.x && i == player.y;
+        const isGoal = j == goal.x && i == goal.y;
+        const isWall = !isStart && !isGoal && Math.random() < wallPercent;
         this.map.push(new Tile(j, i, isStart, isGoal, isWall));
       }
     }
@@ -44,5 +63,14 @@ class Graph {
   }
 }
 
-const graph = new Graph(20, 20, 0, 2, 4, 3, 0.1);
+const player = new Player(0, 2);
+const goal = new Goal(4, 3);
+
+const graph = new Graph({
+  width: 20,
+  height: 20,
+  player,
+  goal,
+  wallPercent: 0.1,
+});
 console.log(graph.toString());

@@ -21,8 +21,11 @@ class Tile {
   constructor(x, y, isStart, isGoal, isWall) {
     this.x = x;
     this.y = y;
+    this.f = Infinity;
+    this.wall = false;
 
     if (isWall) {
+      this.wall = true;
       this.symbol = DEFAULT_WALL;
     } else if (isStart) {
       this.symbol = DEFAULT_PLAYER;
@@ -31,6 +34,10 @@ class Tile {
     } else {
       this.symbol = DEFAULT_TILE;
     }
+  }
+
+  setF(value) {
+    this.f = value;
   }
 }
 
@@ -48,12 +55,17 @@ class Graph {
   }
 
   findPath(xStart, yStart, xEnd, yEnd) {
+    const path = [];
     const openTiles = [];
     const closedTiles = [];
     let currentTile;
 
+    const endTile = this.getTileAt(xEnd, yEnd);
+
     const startTile = this.getTileAt(xStart, yStart);
-    openTiles.add(startTile);
+    startTile.f = 0;
+    startTile.g = 0;
+    openTiles.push(startTile);
 
     while (openTiles.length !== 0) {
       currentTile = openTiles.reduce((best, current) =>
@@ -61,7 +73,7 @@ class Graph {
       );
 
       // Add the best tile to closed list
-      closedTiles.add(currentTile);
+      closedTiles.push(currentTile);
 
       // Remove the currentTile to open tiles
       const indexCurrentTile = openTiles.indexOf(
@@ -72,30 +84,49 @@ class Graph {
       // Check
       const isEnd = closedTiles.some((t) => t.x === xEnd && t.y === yEnd);
       if (isEnd) {
-        // PATH FOUND
         break;
       }
 
       const adjacentTiles = this.getAdjacentTiles(currentTile.x, currentTile.y);
 
       for (const adjacentTile of adjacentTiles) {
+        // Should add not traversable
         const isAlreadyClosedTile = closedTiles.some(
-          (t) => t.x === adjacentTile.x && t.y === adjacentTile.y
+          (t) =>
+            (t.x === adjacentTile.x && t.y === adjacentTile.y) ||
+            adjacentTile.wall
         );
-        if (isAlreadyClosedTile) {
-          continue;
-        }
+        if (!isAlreadyClosedTile) {
+          const isAlreadyOpenTile = openTiles.some(
+            (t) => t.x === adjacentTile.x && t.y === adjacentTile.y
+          );
+          const gScore = currentTile.g + 1;
 
-        const isAlreadyOpenTile = openTiles.some(
-          (t) => t.x === adjacentTile.x && t.y === adjacentTile.y
-        );
-        if (!isAlreadyOpenTile) {
-          openTiles.add(adjacentTile);
-        } else {
-          // Dont get it
+          if (!isAlreadyOpenTile) {
+            openTiles.push(adjacentTile);
+          } else if (gScore >= adjacentTile.g) {
+            continue;
+          }
+
+          adjacentTile.g = gScore;
+          adjacentTile.h = this.distance(adjacentTile, endTile);
+          adjacentTile.f = adjacentTile.g + adjacentTile.h;
+          adjacentTile.parent = currentTile;
         }
       }
     }
+
+    let temp = currentTile;
+    path.push(temp);
+    while (temp.parent) {
+      path.push(temp.parent);
+      temp = temp.parent;
+    }
+    return path.reverse();
+  }
+
+  distance(tileA, tileB) {
+    return Math.abs(tileA.x - tileB.x) + Math.abs(tileA.y - tileB.y);
   }
 
   getTileAt(x, y) {
@@ -147,4 +178,10 @@ const graph = new Graph({
   goal,
   wallPercent: 0.1,
 });
-console.log(graph.toString());
+graph.toString();
+console.log("===========================");
+const pathTiles = graph.findPath(0, 2, 4, 3);
+
+for (const pathTile of pathTiles) {
+  console.log(`{${pathTile.x}, ${pathTile.y}}`);
+}

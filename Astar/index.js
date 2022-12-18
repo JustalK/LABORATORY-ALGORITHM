@@ -62,47 +62,64 @@ class Graph {
     }
   }
 
+  /**
+   * The A* algorythm
+   * @param {*} xStart The x position of the start
+   * @param {*} yStart The y position of the start
+   * @param {*} xEnd The x position of the goal
+   * @param {*} yEnd The y position of the goal
+   * @returns The best path for going for start position to end and avoiding the walls
+   */
   findPath(xStart, yStart, xEnd, yEnd) {
+    // Get the tiles for the start and the end
     const endTile = this.getTileAt(xEnd, yEnd);
     const startTile = this.getTileAt(xStart, yStart);
 
+    // Initialize some variable
     const path = [];
     let openTiles = [];
     let currentTile;
+    let hasPath = false;
 
+    // Put the starting tile in the OPEN tiles
     openTiles.push(startTile);
 
+    // Until we have tiles to analize in the OPEN tiles
     while (openTiles.length !== 0) {
+      // Get the tile with the lowest F
       currentTile = openTiles.reduce(
         (best, current) => (best && best.f < current.f ? best : current),
         openTiles[0]
       );
+
+      // Remove the tile from the OPEN tiles
       const index = openTiles.findIndex(
         (t) => t.x == currentTile.x && t.y == currentTile.y
       );
-      //console.log(currentTile.x, currentTile.y, openTiles[0].x, openTiles[0].y);
-      //console.log(openTiles);
-      //console.log(index);
       openTiles.splice(index, 1);
-      currentTile.toString();
-      //console.log(openTiles);
+
+      // Close it for not coming back to it
       currentTile.closed = true;
 
-      // Check if it's the end
+      // Check if a path has been find, is the current tile the end one?
       if (currentTile.x === xEnd && currentTile.y === yEnd) {
+        hasPath = true;
         break;
       }
 
+      // For all tiles neighbooring the current one
       const adjacentTiles = this.getAdjacentTiles(currentTile.x, currentTile.y);
       for (const adjacentTile of adjacentTiles) {
-        // If wall or closed
+        // If tiles has already been CLOSED or if it's a wall
         if (adjacentTile.closed || adjacentTile.wall) {
           continue;
         }
 
+        // Calculate the gScore (in my case, all tiles are 1. But if it was mountains/plain, it could be different value by tiles)
         const gScore = currentTile.g + adjacentTile.cost;
         const isBeenVisited = adjacentTile.visited;
 
+        // If the tile has not been visited or the gScore value is better
         if (!isBeenVisited || gScore <= adjacentTile.g) {
           adjacentTile.visited = true;
           adjacentTile.parent = currentTile;
@@ -110,6 +127,7 @@ class Graph {
           adjacentTile.g = gScore;
           adjacentTile.f = adjacentTile.g + adjacentTile.h;
 
+          // If it has not been visited, we add it to the OPEN tiles
           if (!isBeenVisited) {
             openTiles.push(adjacentTile);
           }
@@ -117,6 +135,11 @@ class Graph {
       }
     }
 
+    if (!hasPath) {
+      console.log("NO PATH FOUND!");
+    }
+
+    // For showing the path using the parent of each nodes
     let temp = currentTile;
     path.push(temp);
     while (temp.parent) {
@@ -180,9 +203,7 @@ const graph = new Graph({
   wallPercent: 0.3,
 });
 graph.toString();
-console.log("===========================");
-const pathTiles = graph.findPath(0, 1, 3, 2);
-
+const pathTiles = graph.findPath(player.x, player.y, goal.x, goal.y);
 console.log("===========================");
 for (const pathTile of pathTiles) {
   pathTile.toString();

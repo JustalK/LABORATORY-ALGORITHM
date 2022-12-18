@@ -21,7 +21,15 @@ class Tile {
   constructor(x, y, isStart, isGoal, isWall) {
     this.x = x;
     this.y = y;
-    this.f = Infinity;
+    // For A*
+    this.f = 0;
+    this.g = 0;
+    this.h = 0;
+    // Info
+    this.cost = 1;
+    this.visited = false;
+    this.closed = false;
+    this.parant = null;
     this.wall = false;
 
     if (isWall) {
@@ -36,8 +44,8 @@ class Tile {
     }
   }
 
-  setF(value) {
-    this.f = value;
+  toString() {
+    console.log(`{${this.x}, ${this.y}}`);
   }
 }
 
@@ -55,63 +63,56 @@ class Graph {
   }
 
   findPath(xStart, yStart, xEnd, yEnd) {
+    const endTile = this.getTileAt(xEnd, yEnd);
+    const startTile = this.getTileAt(xStart, yStart);
+
     const path = [];
-    const openTiles = [];
-    const closedTiles = [];
+    let openTiles = [];
     let currentTile;
 
-    const endTile = this.getTileAt(xEnd, yEnd);
-
-    const startTile = this.getTileAt(xStart, yStart);
-    startTile.f = 0;
-    startTile.g = 0;
     openTiles.push(startTile);
 
     while (openTiles.length !== 0) {
-      currentTile = openTiles.reduce((best, current) =>
-        best && current.f > best.f ? best : current
+      currentTile = openTiles.reduce(
+        (best, current) => (best && best.f < current.f ? best : current),
+        openTiles[0]
       );
-
-      // Add the best tile to closed list
-      closedTiles.push(currentTile);
-
-      // Remove the currentTile to open tiles
-      const indexCurrentTile = openTiles.indexOf(
-        (t) => t.x === currentTile.x && t.y === currentTile.y
+      const index = openTiles.findIndex(
+        (t) => t.x == currentTile.x && t.y == currentTile.y
       );
-      openTiles.splice(indexCurrentTile, 1);
+      //console.log(currentTile.x, currentTile.y, openTiles[0].x, openTiles[0].y);
+      //console.log(openTiles);
+      //console.log(index);
+      openTiles.splice(index, 1);
+      currentTile.toString();
+      //console.log(openTiles);
+      currentTile.closed = true;
 
-      // Check
-      const isEnd = closedTiles.some((t) => t.x === xEnd && t.y === yEnd);
-      if (isEnd) {
+      // Check if it's the end
+      if (currentTile.x === xEnd && currentTile.y === yEnd) {
         break;
       }
 
       const adjacentTiles = this.getAdjacentTiles(currentTile.x, currentTile.y);
-
       for (const adjacentTile of adjacentTiles) {
-        // Should add not traversable
-        const isAlreadyClosedTile = closedTiles.some(
-          (t) =>
-            (t.x === adjacentTile.x && t.y === adjacentTile.y) ||
-            adjacentTile.wall
-        );
-        if (!isAlreadyClosedTile) {
-          const isAlreadyOpenTile = openTiles.some(
-            (t) => t.x === adjacentTile.x && t.y === adjacentTile.y
-          );
-          const gScore = currentTile.g + 1;
+        // If wall or closed
+        if (adjacentTile.closed || adjacentTile.wall) {
+          continue;
+        }
 
-          if (!isAlreadyOpenTile) {
-            openTiles.push(adjacentTile);
-          } else if (gScore >= adjacentTile.g) {
-            continue;
-          }
+        const gScore = currentTile.g + adjacentTile.cost;
+        const isBeenVisited = adjacentTile.visited;
 
-          adjacentTile.g = gScore;
-          adjacentTile.h = this.distance(adjacentTile, endTile);
-          adjacentTile.f = adjacentTile.g + adjacentTile.h;
+        if (!isBeenVisited || gScore <= adjacentTile.g) {
+          adjacentTile.visited = true;
           adjacentTile.parent = currentTile;
+          adjacentTile.h = this.manhattan(adjacentTile, endTile);
+          adjacentTile.g = gScore;
+          adjacentTile.f = adjacentTile.g + adjacentTile.h;
+
+          if (!isBeenVisited) {
+            openTiles.push(adjacentTile);
+          }
         }
       }
     }
@@ -125,7 +126,7 @@ class Graph {
     return path.reverse();
   }
 
-  distance(tileA, tileB) {
+  manhattan(tileA, tileB) {
     return Math.abs(tileA.x - tileB.x) + Math.abs(tileA.y - tileB.y);
   }
 
@@ -168,20 +169,21 @@ class Graph {
   }
 }
 
-const player = new Player(0, 2);
-const goal = new Goal(4, 3);
+const player = new Player(0, 1);
+const goal = new Goal(3, 2);
 
 const graph = new Graph({
-  width: 20,
-  height: 20,
+  width: 4,
+  height: 4,
   player,
   goal,
-  wallPercent: 0.1,
+  wallPercent: 0.3,
 });
 graph.toString();
 console.log("===========================");
-const pathTiles = graph.findPath(0, 2, 4, 3);
+const pathTiles = graph.findPath(0, 1, 3, 2);
 
+console.log("===========================");
 for (const pathTile of pathTiles) {
-  console.log(`{${pathTile.x}, ${pathTile.y}}`);
+  pathTile.toString();
 }

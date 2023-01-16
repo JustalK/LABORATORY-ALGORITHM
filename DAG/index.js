@@ -31,5 +31,5 @@ class Graph {
 }
 
 // A B X X
-// X C D X
+// X C D F
 // X E X X

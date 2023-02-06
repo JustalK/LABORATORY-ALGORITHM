@@ -11,9 +11,30 @@ class MonteCarlo {
     this.nodes = new Map(); // map: State.hash() => MonteCarloNode
   }
 
+  makeNode(state) {
+    if (!this.nodes.has(state.hash())) {
+      let unexpandedPlays = this.game.legalPlays(state).slice();
+      let node = new MonteCarloNode(null, null, state, unexpandedPlays);
+      this.nodes.set(state.hash(), node);
+    }
+  }
+
   /** From given state, repeatedly run MCTS to build statistics. */
-  runSearch(state, timeout) {
-    // TODO
+  runSearch(state, timeout = 3) {
+    this.makeNode(state);
+
+    let draws = 0;
+    let totalSims = 0;
+
+    let end = Date.now() + timeout * 1000;
+
+    while (Date.now() < end) {
+      let node = this.select(state);
+      let winner = this.game.winner(node.state);
+
+      if (winner === 0) draws++;
+      totalSims++;
+    }
   }
   /** Get the best move from available statistics. */
   bestPlay(state) {

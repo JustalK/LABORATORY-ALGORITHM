@@ -1,4 +1,5 @@
 const State = require("./state.js");
+const Play = require("./play.js");
 const N_ROWS = 6;
 const N_COLS = 7;
 
@@ -30,8 +31,16 @@ class Game {
   }
   /** Return the current player’s legal moves from given state. */
   legalPlays(state) {
-    // TODO
-    return plays;
+    let legalPlays = [];
+    for (let col = 0; col < N_COLS; col++) {
+      for (let row = N_ROWS - 1; row >= 0; row--) {
+        if (state.board[row][col] == 0) {
+          legalPlays.push(new Play(row, col));
+          break;
+        }
+      }
+    }
+    return legalPlays;
   }
   /** Advance the given state and return it. */
   nextState(state, move) {

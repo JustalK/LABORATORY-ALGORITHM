@@ -11,6 +11,16 @@ const boardPrototype = [
   [0, 0, 0, 0, 0, 0, 0],
 ];
 
+const checkPrototype = [
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+];
+
 /** Class representing the game board. */
 class Game {
   /** Generate and return the initial game state. */
@@ -60,16 +70,16 @@ class Game {
           let acc;
           switch (key) {
             case "horiz":
-              acc = val[row + 1][col]; // left
+              acc = val[row + 1][col];
               break;
             case "verti":
-              acc = val[row][col + 1]; // top
+              acc = val[row][col + 1];
               break;
             case "ldiag":
-              acc = val[row][col]; // top left
+              acc = val[row][col];
               break;
             case "rdiag":
-              acc = val[row][col + 2]; // top right
+              acc = val[row][col + 2];
               break;
           }
 

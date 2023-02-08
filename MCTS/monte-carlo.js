@@ -41,5 +41,29 @@ class MonteCarlo {
     // TODO
     // return play
   }
+
+  /**
+   * Phase 1: Selection
+   * Select until EITHER not fully expanded OR leaf node
+   * @param {State} state - The root state to start selection from.
+   * @return {MonteCarloNode} The selected node.
+   */
+  select(state) {
+    let node = this.nodes.get(state.hash());
+    while (node.isFullyExpanded() && !node.isLeaf()) {
+      let plays = node.allPlays();
+      let bestPlay;
+      let bestUCB1 = -Infinity;
+      for (let play of plays) {
+        let childUCB1 = node.childNode(play).getUCB1(this.UCB1ExploreParam);
+        if (childUCB1 > bestUCB1) {
+          bestPlay = play;
+          bestUCB1 = childUCB1;
+        }
+      }
+      node = node.childNode(bestPlay);
+    }
+    return node;
+  }
 }
 module.exports = MonteCarlo;

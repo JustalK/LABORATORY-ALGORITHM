@@ -44,8 +44,13 @@ class Game {
   }
   /** Advance the given state and return it. */
   nextState(state, move) {
-    // TODO
-    return newState;
+    let newHistory = state.playHistory.slice(); // 1-deep copy
+    newHistory.push(play);
+    let newBoard = state.board.map((row) => row.slice());
+    newBoard[play.row][play.col] = state.player;
+    let newPlayer = -state.player;
+
+    return new State(newHistory, newBoard, newPlayer);
   }
   /** Return the winner of the game. */
   winner(state) {

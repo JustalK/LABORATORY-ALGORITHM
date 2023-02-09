@@ -44,6 +44,22 @@ class MonteCarloNode {
   }
 
   /**
+   * Expand the specified child play and return the new child node.
+   * Add the node to the array of children nodes.
+   * Remove the play from the array of unexpanded plays.
+   * @param {Play} play - The play to expand.
+   * @param {State} childState - The child state corresponding to the given play.
+   * @param {Play[]} unexpandedPlays - The given child's unexpanded child plays; typically all of them.
+   * @return {MonteCarloNode} The new child node.
+   */
+  expand(play, childState, unexpandedPlays) {
+    if (!this.children.has(play.hash())) throw new Error("No such play!");
+    let childNode = new MonteCarloNode(this, play, childState, unexpandedPlays);
+    this.children.set(play.hash(), { play: play, node: childNode });
+    return childNode;
+  }
+
+  /**
    * Get all legal plays from this node.
    * @return {Play[]} All plays.
    */
@@ -64,6 +80,18 @@ class MonteCarloNode {
       if (child.node === null) return false;
     }
     return true;
+  }
+
+  /**
+   * Get all unexpanded legal plays from this node.
+   * @return {Play[]} All unexpanded plays.
+   */
+  unexpandedPlays() {
+    let ret = [];
+    for (let child of this.children.values()) {
+      if (child.node === null) ret.push(child.play);
+    }
+    return ret;
   }
 
   /**

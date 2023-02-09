@@ -32,6 +32,12 @@ class MonteCarlo {
       let node = this.select(state);
       let winner = this.game.winner(node.state);
 
+      if (node.isLeaf() === false && winner === null) {
+        node = this.expand(node);
+        winner = this.simulate(node);
+      }
+      this.backpropagate(node, winner);
+
       if (winner === 0) draws++;
       totalSims++;
     }
@@ -64,6 +70,25 @@ class MonteCarlo {
       node = node.childNode(bestPlay);
     }
     return node;
+  }
+
+  /**
+   * Phase 2: Expansion
+   * Of the given node, expand a random unexpanded child node
+   * @param {MonteCarloNode} node - The node to expand from. Assume not leaf.
+   * @return {MonteCarloNode} The new expanded child node.
+   */
+  expand(node) {
+    let plays = node.unexpandedPlays();
+    let index = Math.floor(Math.random() * plays.length);
+    let play = plays[index];
+
+    let childState = this.game.nextState(node.state, play);
+    let childUnexpandedPlays = this.game.legalPlays(childState);
+    let childNode = node.expand(play, childState, childUnexpandedPlays);
+    this.nodes.set(childState.hash(), childNode);
+
+    return childNode;
   }
 }
 module.exports = MonteCarlo;

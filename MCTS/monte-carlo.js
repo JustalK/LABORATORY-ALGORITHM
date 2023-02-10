@@ -90,5 +90,25 @@ class MonteCarlo {
 
     return childNode;
   }
+
+  /**
+   * Phase 3: Simulation
+   * From given node, play the game until a terminal state, then return winner
+   * @param {MonteCarloNode} node - The node to simulate from.
+   * @return {number} The winner of the terminal game state.
+   */
+  simulate(node) {
+    let state = node.state;
+    let winner = this.game.winner(state);
+
+    while (winner === null) {
+      let plays = this.game.legalPlays(state);
+      let play = plays[Math.floor(Math.random() * plays.length)];
+      state = this.game.nextState(state, play);
+      winner = this.game.winner(state);
+    }
+
+    return winner;
+  }
 }
 module.exports = MonteCarlo;
